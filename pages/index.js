@@ -1,34 +1,9 @@
 import {Box, Button, Text, TextField, Image} from '@skynexui/components';
+import React from 'react';
+import {useRouter} from 'next/router';
 import appConfig from '../config.json';
+import { setConfig } from 'next/config';
 
-function GlobalStyle() {
-    return (
-      <style global jsx>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          list-style: none;
-        }
-        body {
-          font-family: 'Open Sans', sans-serif;
-        }
-        /* App fit Height */ 
-        html, body, #__next {
-          min-height: 100vh;
-          display: flex;
-          flex: 1;
-        }
-        #__next {
-          flex: 1;
-        }
-        #__next > * {
-          flex: 1;
-        }
-        /* ./App fit Height */ 
-      `}</style>
-    );
- }
 
  function Titulo(props) {
     const Tag = props.tag || 'h1';
@@ -47,11 +22,14 @@ function GlobalStyle() {
   }
 
   export default function PaginaInicial() {
-    const username = 'mbilobro';
+    // const username = 'mbilobro';
+
+    const [username, setUsername ] = React.useState('mbilobro');
+    const [image, setImage] = React.useState(`https://github.com/${username}.png`);
+    const roteamento = useRouter();
   
     return (
       <>
-        <GlobalStyle />
         <Box
           styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -78,6 +56,11 @@ function GlobalStyle() {
             {/* Formulário */}
             <Box
               as="form"
+              onSubmit={function(event){
+                event.preventDefault();
+                roteamento.push('/chat');
+                
+              }}
               styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
@@ -89,6 +72,16 @@ function GlobalStyle() {
               </Text>
   
               <TextField
+                value={username}
+                onChange={function(event) {
+                  //Onde está o valor
+                  const valor = event.target.value;
+                  // Troca o valor da variavel com a function do estado
+                  valor.length < 2 ? setImage(false) : setImage(`https://github.com/${username}.png`);
+                  
+                  setUsername(valor);
+
+                }}
                 fullWidth
                 textFieldColors={{
                   neutral: {
@@ -99,6 +92,7 @@ function GlobalStyle() {
                   },
                 }}
               />
+              
               <Button
                 type='submit'
                 label='Entrar'
@@ -131,12 +125,15 @@ function GlobalStyle() {
               }}
             >
               <Image
+              
                 styleSheet={{
                   borderRadius: '50%',
                   marginBottom: '16px',
                 }}
-                src={`https://github.com/${username}.png`}
+
+                src={image}
               />
+
               <Text
                 variant="body4"
                 styleSheet={{
