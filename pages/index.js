@@ -77,8 +77,9 @@ import { setConfig } from 'next/config';
                   //Onde está o valor
                   const valor = event.target.value;
                   // Troca o valor da variavel com a function do estado
-                  valor.length < 2 ? setImage(false) : setImage(`https://github.com/${username}.png`);
                   
+                  valor.length < 2 ? setImage(false) : setImage(`https://github.com/${username}.png`);
+
                   setUsername(valor);
 
                 }}
@@ -99,7 +100,7 @@ import { setConfig } from 'next/config';
                 fullWidth
                 buttonColors={{
                   contrastColor: appConfig.theme.colors.neutrals["000"],
-                  mainColor: appConfig.theme.colors.primary[500],
+                  mainColor: appConfig.theme.colors.primary[600],
                   mainColorLight: appConfig.theme.colors.primary[400],
                   mainColorStrong: appConfig.theme.colors.primary[600],
                 }}
