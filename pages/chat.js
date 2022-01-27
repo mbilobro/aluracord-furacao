@@ -1,6 +1,15 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js';
+
+
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxNDM4NCwiZXhwIjoxOTU4ODkwMzg0fQ.3NI-abWzLQlhBUNMp8JbazUvj6_w3MFpqcwKngbv55o"
+const SUPABASE_URL = "https://hdvisfamazyutkzmnwot.supabase.co"
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// const supabaseClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
 
 export default function ChatPage() {
     
@@ -16,17 +25,36 @@ export default function ChatPage() {
     const [mensagem, setMensagem ] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
 
+
+    React.useEffect(() => {
+        supabaseClient
+            .from('mensagem')
+            .select('*')
+            .order('id', {ascending:false})
+            .then(({ data }) => {
+                setListaDeMensagens(data)
+            })
+    }, [listaDeMensagens])
+
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
-            id: listaDeMensagens.length + 1,
+            // id: listaDeMensagens.length + 1,
             de: 'mbilobro',
-            texto: novaMensagem,
+            texto: novaMensagem
         };
-
-        setListaDeMensagens([
-            mensagem,
-            ...listaDeMensagens,
-        ]);
+    
+        supabaseClient
+        .from('mensagem')
+        .insert([
+            mensagem
+        ])
+        .then((data) => {
+            // setListaDeMensagens([
+            //     mensagem,
+            //     ...listaDeMensagens
+            // ]);
+        });
+        
         setMensagem('');
     }
 
@@ -88,7 +116,6 @@ export default function ChatPage() {
           
                           }}
                           onKeyPress={(event)=> {
-                              console.log(event);
                             if ((event.code === 'Enter' || event.code === 'NumpadEnter') && event.key === 'Enter' && event.target.value != ""){
                                 event.preventDefault();
                                 handleNovaMensagem(mensagem);
