@@ -25,7 +25,7 @@ import { setConfig } from 'next/config';
     // const username = 'mbilobro';
 
     const [username, setUsername ] = React.useState('mbilobro');
-    const [image, setImage] = React.useState(`https://github.com/${username}.png`);
+    // const [image, setImage] = React.useState(`https://github.com/${username}.png`);
     const roteamento = useRouter();
   
     return (
@@ -58,7 +58,7 @@ import { setConfig } from 'next/config';
               as="form"
               onSubmit={function(event){
                 event.preventDefault();
-                roteamento.push('/chat');
+                roteamento.push(`/chat?username=${username}`);
                 
               }}
               styleSheet={{
@@ -78,8 +78,6 @@ import { setConfig } from 'next/config';
                   const valor = event.target.value;
                   // Troca o valor da variavel com a function do estado
                   
-                  valor.length < 2 ? setImage(false) : setImage(`https://github.com/${username}.png`);
-
                   setUsername(valor);
 
                 }}
@@ -132,7 +130,7 @@ import { setConfig } from 'next/config';
                   marginBottom: '16px',
                 }}
 
-                src={image}
+                src={`https://github.com/${username}.png`}
               />
 
               <Text

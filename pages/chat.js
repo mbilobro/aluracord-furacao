@@ -1,12 +1,23 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import {useRouter} from 'next/router';
 import { createClient } from '@supabase/supabase-js';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker'
 
 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxNDM4NCwiZXhwIjoxOTU4ODkwMzg0fQ.3NI-abWzLQlhBUNMp8JbazUvj6_w3MFpqcwKngbv55o"
 const SUPABASE_URL = "https://hdvisfamazyutkzmnwot.supabase.co"
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+      .from('mensagens')
+      .on('INSERT', (respostaLive) => {
+        adicionaMensagem(respostaLive.new);
+      })
+      .subscribe();
+  }
 
 // const supabaseClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
@@ -24,25 +35,42 @@ export default function ChatPage() {
 
     const [mensagem, setMensagem ] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
 
 
     React.useEffect(() => {
         supabaseClient
-            .from('mensagem')
-            .select('*')
-            .order('id', {ascending:false})
-            .then(({ data }) => {
-                setListaDeMensagens(data)
-            })
-    }, [listaDeMensagens])
+          .from('mensagem')
+          .select('*')
+          .order('id', { ascending: false })
+          .then(({ data }) => {
+            // console.log('Dados da consulta:', data);
+            setListaDeMensagens(data);
+          });
 
-    function handleNovaMensagem(novaMensagem) {
-        const mensagem = {
-            // id: listaDeMensagens.length + 1,
-            de: 'mbilobro',
-            texto: novaMensagem
-        };
-    
+          const subscription = escutaMensagensEmTempoReal((novaMensagem) => {
+            setListaDeMensagens((valorAtualDaLista) => {
+              return [
+                novaMensagem,
+                ...valorAtualDaLista,
+              ]
+            });
+          });
+      
+          return () => {
+            subscription.unsubscribe();
+          }
+        }, []);
+      
+
+        function handleNovaMensagem(novaMensagem) {
+            const mensagem = {
+              // id: listaDeMensagens.length + 1,
+              de: usuarioLogado,
+              texto: novaMensagem,
+            };
+            
         supabaseClient
         .from('mensagem')
         .insert([
@@ -136,6 +164,12 @@ export default function ChatPage() {
                             }}
                         />
 
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                handleNovaMensagem(':sticker: ' + sticker);
+                            }}
+                        />
+
                         <Button 
                         iconName="arrowRight"
                         buttonColors={{
@@ -143,6 +177,25 @@ export default function ChatPage() {
                             mainColor: appConfig.theme.colors.primary[600],
                             mainColorLight: appConfig.theme.colors.primary[400],
                             mainColorStrong: appConfig.theme.colors.primary[600],
+                          }}
+
+                          styleSheet={{
+                            borderRadius: '50%',
+                            padding: '0 3px 0 0',
+                            minWidth: '50px',
+                            minHeight: '50px',
+                            fontSize: '20px',
+                            marginBottom: '8px',
+                            lineHeight: '0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            hover: {
+                              backgroundColor: appConfig.theme.colors.neutrals["000"],
+                              color: appConfig.theme.colors.primary["600"],
+                              borderColor: appConfig.theme.colors.primary["600"]
+                            },
+                            marginLeft: '5px'
                           }}
 
                         onClick={(event)=> {
@@ -167,7 +220,7 @@ function Header() {
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
                 <Text variant='heading5'>
-                    Chat
+                    Furacord
                 </Text>
                 <Button
                     variant='tertiary'
@@ -183,63 +236,76 @@ function Header() {
 function MessageList(props) {
     return (
         <Box
-            tag="ul"
-            styleSheet={{
-                overflow: 'scroll',
-                display: 'flex',
-                flexDirection: 'column-reverse',
-                flex: 1,
-                color: appConfig.theme.colors.neutrals["000"],
-                marginBottom: '16px',
-            }}
+          tag="ul"
+          styleSheet={{
+            overflow: 'scroll',
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flex: 1,
+            color: appConfig.theme.colors.neutrals["000"],
+            marginBottom: '16px'
+          }}
         >
-            {props.mensagens.map((mensagem) => {
-                return (
-                    <Text
-                        key={mensagem.id}
-                        tag="li"
-                        styleSheet={{
-                            borderRadius: '5px',
-                            padding: '6px',
-                            marginBottom: '12px',
-                            hover: {
-                                backgroundColor: appConfig.theme.colors.neutrals[700],
-                            }
-                        }}
-                    >
-                        <Box
-                            styleSheet={{
-                                marginBottom: '8px',
-                            }}
-                        >
-                            <Image
-                                styleSheet={{
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '50%',
-                                    display: 'inline-block',
-                                    marginRight: '8px',
-                                }}
-                                src={`https://github.com/mbilobro.png`}
-                            />
-                            <Text tag="strong">
-                                {mensagem.de}
-                            </Text>
-                            <Text
-                                styleSheet={{
-                                    fontSize: '10px',
-                                    marginLeft: '8px',
-                                    color: appConfig.theme.colors.neutrals[300],
-                                }}
-                                tag="span"
-                            >
-                                {(new Date().toLocaleDateString())}
-                            </Text>
-                        </Box>
-                        {mensagem.texto}
-                    </Text>
-                );
-            })}
+          {props.mensagens.map((mensagem) => {
+            return (
+              <Text
+                key={mensagem.id}
+                tag="li"
+                styleSheet={{
+                  borderRadius: '5px',
+                  padding: '6px',
+                  marginBottom: '12px',
+                  hover: {
+                    backgroundColor: appConfig.theme.colors.neutrals[700]
+                  }
+                }}
+              >
+                <Box
+                  styleSheet={{
+                    marginBottom: '8px',
+                  }}
+                >
+                  <Image
+                    styleSheet={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      marginRight: '8px',
+                    }}
+                    src={`https://github.com/${mensagem.de}.png`}
+                  />
+                  <Text tag="strong">
+                    {mensagem.de}
+                  </Text>
+                  <Text
+                    styleSheet={{
+                      fontSize: '10px',
+                      marginLeft: '8px',
+                      color: appConfig.theme.colors.neutrals[300],
+                    }}
+                    tag="span"
+                  >
+                    {(new Date().toLocaleDateString())}
+                  </Text>
+                </Box>
+                {/* [Declarativo] */}
+                {/* Condicional: {mensagem.texto.startsWith(':sticker:').toString()} */}
+                {mensagem.texto.startsWith(':sticker:')
+                  ? (
+                    <Image src={mensagem.texto.replace(':sticker:', '')} />
+                  )
+                  : (
+                    mensagem.texto
+                  )}
+                {/* if mensagem de texto possui stickers:
+                               mostra a imagem
+                            else 
+                               mensagem.texto */}
+                {/* {mensagem.texto} */}
+              </Text>
+            );
+          })}
         </Box>
-    )
-}
+      )
+    }
