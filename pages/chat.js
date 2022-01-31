@@ -61,7 +61,7 @@ export default function ChatPage() {
           return () => {
             subscription.unsubscribe();
           }
-        }, []);
+        }, [listaDeMensagens]);
       
 
         function handleNovaMensagem(novaMensagem) {
